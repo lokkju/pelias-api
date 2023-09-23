@@ -9,10 +9,10 @@ const es = require('elasticsearch');
 const logger = require( 'pelias-logger' ).get( 'api' );
 
 function service( esclient, cmd, cb ){
+  // some tests pass in a string, and expect it back unchanged
   if(_.isObject(cmd)) {
     cmd = _.merge({}, cmd, {body: {_source: {excludes: ['shape']}}});
   }
-  console.log(cmd)
   // query elasticsearch
   const startTime = new Date();
   esclient.search( cmd, function( err, data ){
