@@ -409,7 +409,7 @@ module.exports.tests.non_optimal_conditions = (test, common) => {
     };
 
     t.deepEquals(actual, expected);
-    t.ok(logger.isWarnMessage('No doc or center_point property'));
+    t.ok(logger.isWarnMessage('No doc or center_point or shape property'));
     t.end();
 
   });
@@ -480,7 +480,7 @@ module.exports.tests.non_optimal_conditions = (test, common) => {
     };
 
     t.deepEquals(actual, expected);
-    t.ok(logger.isWarnMessage('No doc or center_point property'));
+    t.ok(logger.isWarnMessage('No doc or center_point or shape property'));
     t.end();
 
   });

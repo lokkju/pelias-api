@@ -14,8 +14,8 @@ function geojsonifyPlaces( params, docs ){
   // flatten & expand data for geojson conversion
   const geodata = docs
     .filter(doc => {
-      if (!_.has(doc, 'center_point')) {
-        logger.warn('No doc or center_point property');
+      if (!_.has(doc, 'center_point') && !_.has(doc, 'shape')) {
+        logger.warn('No doc or center_point or shape property');
         return false;
       } else {
         return true;
@@ -28,8 +28,8 @@ function geojsonifyPlaces( params, docs ){
   const extentPoints = extractExtentPoints(geodata);
 
   // convert to geojson
-  const geojson             = GeoJSON.parse( geodata, { Point: ['lat', 'lng'] });
-  const geojsonExtentPoints = GeoJSON.parse( extentPoints, { Point: ['lat', 'lng'] });
+  const geojson             = geojsonParsePriority(geodata);
+  const geojsonExtentPoints = geojsonParsePriority(extentPoints);
 
   // to insert the bbox property at the top level of each feature, it must be done separately after
   // initial geojson construction is finished
@@ -42,6 +42,13 @@ function geojsonifyPlaces( params, docs ){
   computeBBox(geojson, geojsonExtentPoints);
 
   return geojson;
+}
+function geojsonParsePriority(geodata) {
+  if (_.has(geodata, 'shape') && GeoJSON.isValidGeometry(geodata.shape)) {
+    return GeoJSON.parse(geodata, {GeoJSON: 'shape'})
+  } else {
+    return GeoJSON.parse(geodata, {Point: ['lat','lng']})
+  }
 }
 
 function geojsonifyPlace(params, place) {
@@ -65,6 +72,13 @@ function geojsonifyPlace(params, place) {
   } else {
     logger.warn(`doc ${doc.gid} does not contain name.default`);
   }
+
+  // assign shape if it exists
+  if (_.has(place, 'shape')) {
+    doc.shape = place.shape
+  }
+
+
 
   // assign all the details info into the doc
   Object.assign(doc, collectDetails(params, place));
