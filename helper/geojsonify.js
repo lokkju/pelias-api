@@ -28,9 +28,11 @@ function geojsonifyPlaces( params, docs ){
   const extentPoints = extractExtentPoints(geodata);
 
   // convert to geojson
-  const geojson             = geojsonParsePriority(geodata);
-  const geojsonExtentPoints = geojsonParsePriority(extentPoints);
-
+  // This is a hack that depends on GeoJSON replacing each field with a later one, if it exists.
+  // Prefer to do this some other way.
+  // TODO: fix with resolution of above comment
+  const geojson             = GeoJSON.parse(geodata, {Point: ['lat','lng'], GeoJSON: 'shape'});
+  const geojsonExtentPoints = GeoJSON.parse(extentPoints, {GeoJSON: 'shape', Point: ['lat','lng']});
   // to insert the bbox property at the top level of each feature, it must be done separately after
   // initial geojson construction is finished
   addBBoxPerFeature(geojson);
@@ -42,13 +44,6 @@ function geojsonifyPlaces( params, docs ){
   computeBBox(geojson, geojsonExtentPoints);
 
   return geojson;
-}
-function geojsonParsePriority(geodata) {
-  if (_.has(geodata, 'shape') && GeoJSON.isValidGeometry(geodata.shape)) {
-    return GeoJSON.parse(geodata, {GeoJSON: 'shape'})
-  } else {
-    return GeoJSON.parse(geodata, {Point: ['lat','lng']})
-  }
 }
 
 function geojsonifyPlace(params, place) {
